@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurnal Harian Remaja (Juara)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Menggunakan font Inter */
+            background-color: #f0f9ff; /* Warna latar belakang biru muda lembut */
+            color: #1e293b; /* Warna teks utama slate-800 */
+        }
+        /* Animasi sederhana untuk transisi halaman */
+        .page {
+            display: none; /* Semua halaman disembunyikan secara default */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .page.active {
+            display: block; /* Halaman aktif ditampilkan */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Animasi selamat datang sederhana */
+        @keyframes bubbleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .welcome-emoji {
+            animation: bubbleFloat 3s ease-in-out infinite;
+            font-size: 3rem; /* Ukuran emoji lebih besar */
+        }
+        .mood-emoji {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .mood-emoji:hover {
+            transform: scale(1.2);
+        }
+        .mood-emoji.selected {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 5px #facc15); /* Efek glow kuning untuk emoji terpilih */
+        }
+        /* Styling untuk tombol navigasi */
+        nav button {
+            transition: all 0.3s ease;
+        }
+        nav button.active-nav {
+            background-color: #3b82f6; /* Warna biru lebih gelap untuk tombol aktif */
+            color: white;
+            font-weight: bold;
+        }
+        /* Custom scrollbar (opsional, untuk estetika) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f9ff; /* Warna track scrollbar */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #93c5fd; /* Warna thumb scrollbar biru muda */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #60a5fa; /* Warna thumb scrollbar saat hover */
+        }
+        /* Modal styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 500px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-blue-500 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Jurnal Harian Remaja (Juara) ✨</h1>
+            <div id="user-info" class="text-sm"></div>
+        </div>
+    </header>
+
+    <nav class="bg-blue-100 p-2 shadow-sm">
+        <div class="container mx-auto flex flex-wrap justify-center space-x-1 sm:space-x-2">
+            <button data-page="page-welcome" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">👋 Selamat Datang</button>
+            <button data-page="page-dashboard" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">🏠 Dashboard</button>
+            <button data-page="page-write-journal" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">✍️ Tulis Jurnal</button>
+            <button data-page="page-my-journals" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">📚 Jurnal Saya</button>
+            <button data-page="page-mood-tracker" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">📊 Pelacak Mood</button>
+            <button data-page="page-relax-zone" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">🧘 Zona Tenang</button>
+            <button data-page="page-settings" class="nav-button px-2 py-1 sm:px-3 sm:py-2 rounded-md hover:bg-blue-200 text-blue-700 text-xs sm:text-sm">⚙️ Pengaturan</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 flex-grow">
+        <section id="page-welcome" class="page active text-center">
+            <div class="bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+                <div class="welcome-emoji mb-4">🌟</div>
+                <h2 class="text-3xl sm:text-4xl font-bold text-blue-600 mb-2">Selamat Datang di Juara!</h2>
+                <p class="text-lg text-slate-700 mb-6">"Ruang Amanmu, Ekspresikan Dirimu!"</p>
+                <p class="text-slate-600 mb-4">Aplikasi ini membantumu mencatat perasaan, melacak suasana hati, dan menemukan ketenangan. Mari mulai perjalananmu!</p>
+                <button id="login-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-300">
+                    Mulai Sekarang
+                </button>
+                <div id="auth-status" class="mt-4 text-sm text-slate-500"></div>
+            </div>
+        </section>
+
+        <section id="page-dashboard" class="page">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-blue-600 mb-6">Dashboard Saya</h2>
+                
+                <div class="mb-8 p-4 bg-sky-50 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-3">Bagaimana perasaanmu hari ini?</h3>
+                    <div id="mood-checkin-emojis" class="flex justify-around items-center text-3xl sm:text-4xl">
+                        <span class="mood-emoji" data-mood="senang">😄</span>
+                        <span class="mood-emoji" data-mood="biasa">😐</span>
+                        <span class="mood-emoji" data-mood="sedih">😢</span>
+                        <span class="mood-emoji" data-mood="marah">😠</span>
+                        <span class="mood-emoji" data-mood="cemas">😟</span>
+                        <span class="mood-emoji" data-mood="semangat">🤩</span>
+                    </div>
+                    <p id="mood-checkin-feedback" class="text-center mt-3 text-sky-600"></p>
+                </div>
+
+                <div class="mb-8 p-4 bg-purple-50 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-purple-700 mb-2">Kutipan Hari Ini:</h3>
+                    <blockquote class="italic text-purple-600">
+                        <p id="daily-quote">"Setiap hari adalah kesempatan baru untuk menjadi versi terbaik dari dirimu."</p>
+                        <footer class="text-sm mt-1">- Juara App</footer>
+                    </blockquote>
+                </div>
+
+                <div class="mb-8 p-4 bg-yellow-50 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-yellow-700 mb-2">Streak Jurnalmu:</h3>
+                    <p class="text-2xl font-bold text-yellow-600"><span id="journal-streak">0</span> hari berturut-turut 🔥</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button data-page="page-write-journal" class="nav-shortcut-button bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow transition duration-300 flex items-center justify-center">
+                        <i class="fas fa-pencil-alt mr-2"></i> Tulis Jurnal Baru
+                    </button>
+                    <button data-page="page-my-journals" class="nav-shortcut-button bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow transition duration-300 flex items-center justify-center">
+                        <i class="fas fa-book-open mr-2"></i> Lihat Jurnal Saya
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-write-journal" class="page">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-blue-600 mb-6">Tulis Jurnal Baru 📝</h2>
+                <div class="mb-4">
+                    <label for="journal-date" class="block text-sm font-medium text-slate-700 mb-1">Tanggal:</label>
+                    <input type="date" id="journal-date" class="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Mood hari ini:</label>
+                    <div id="journal-mood-options" class="flex flex-wrap gap-2 text-2xl">
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="senang">😄</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="biasa">😐</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="sedih">😢</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="marah">😠</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="cemas">😟</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="semangat">🤩</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="syukur">🙏</span>
+                        <span class="mood-emoji p-1 border-2 border-transparent rounded-full" data-mood="kreatif">🎨</span>
+                    </div>
+                    <input type="hidden" id="selected-journal-mood">
+                </div>
+                <div class="mb-4">
+                    <label for="journal-text" class="block text-sm font-medium text-slate-700 mb-1">Ceritakan harimu:</label>
+                    <textarea id="journal-text" rows="10" class="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Apa yang kamu rasakan atau alami hari ini?"></textarea>
+                </div>
+                <button id="save-journal-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-300">
+                    Simpan Jurnal
+                </button>
+                <p id="save-journal-feedback" class="text-center mt-3 text-green-600"></p>
+            </div>
+        </section>
+
+        <section id="page-my-journals" class="page">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-blue-600 mb-6">Jurnal Saya 📖</h2>
+                <div id="journal-list" class="space-y-4">
+                    <p class="text-slate-500">Belum ada jurnal yang ditulis. Mulai tulis jurnalmu sekarang!</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-mood-tracker" class="page">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-blue-600 mb-6">Pelacak Suasana Hatimu 📈</h2>
+                <p class="mb-4 text-slate-600">Lihat bagaimana suasana hatimu berubah dari waktu ke waktu.</p>
+                <div id="mood-log-list" class="space-y-3">
+                    <p class="text-slate-500">Belum ada mood yang tercatat. Lakukan check-in mood di Dashboard!</p>
+                </div>
+                <div class="mt-6 p-4 border border-dashed border-slate-300 rounded-md text-center text-slate-500">
+                    <p>Grafik visualisasi mood akan muncul di sini di versi mendatang!</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-relax-zone" class="page">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-blue-600 mb-6">Zona Tenang 🧘‍♀️</h2>
+                <p class="mb-6 text-slate-600">Ambil waktu sejenak untuk rileks dan menenangkan pikiran.</p>
+                
+                <div class="mb-8 p-4 bg-teal-50 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-teal-700 mb-3">Latihan Pernapasan Sederhana</h3>
+                    <ol class="list-decimal list-inside text-teal-600 space-y-2">
+                        <li>Duduk atau berbaring dengan nyaman.</li>
+                        <li>Pejamkan mata jika kamu mau.</li>
+                        <li>Tarik napas perlahan melalui hidung, hitung sampai 4.</li>
+                        <li>Tahan napas, hitung sampai 4.</li>
+                        <li>Hembuskan napas perlahan melalui mulut, hitung sampai 6.</li>
+                        <li>Ulangi beberapa kali sampai merasa lebih tenang.</li>
+                    </ol>
+                    <div class="mt-4 text-center">
+                        <div id="breathing-animation" class="w-24 h-24 bg-sky-300 rounded-full mx-auto flex items-center justify-center text-white transition-all duration-3000 ease-in-out">
+                            Tarik Napas
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-indigo-50 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-indigo-700 mb-3">Afirmasi Positif</h3>
+                    <ul id="affirmations-list" class="list-disc list-inside text-indigo-600 space-y-1">
+                        <li>Aku berharga dan cukup.</li>
+                        <li>Aku mampu menghadapi tantangan.</li>
+                        <li>Aku memilih kedamaian hari ini.</li>
+                        <li>Aku bersyukur atas apa yang kumiliki.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-settings" class="page">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold text-blue-600 mb-6">Pengaturan ⚙️</h2>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Ekspor Jurnal</h3>
+                    <button id="export-email-button" class="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-600 text-white font-medium py-2 px-4 rounded-md shadow mr-2 mb-2 sm:mb-0">
+                        <i class="fas fa-envelope mr-2"></i> Kirim Semua Jurnal ke Email
+                    </button>
+                    <button id="export-whatsapp-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md shadow">
+                        <i class="fab fa-whatsapp mr-2"></i> Bagikan Jurnal Terakhir ke WhatsApp
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Tema Aplikasi (Segera Hadir)</h3>
+                    <p class="text-slate-500">Pilih tampilan favoritmu!</p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Bantuan & FAQ (Segera Hadir)</h3>
+                    <p class="text-slate-500">Temukan jawaban atas pertanyaanmu.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-blue-500 text-white text-center p-4 mt-auto">
+        <p>&copy; <span id="current-year"></span> Jurnal Harian Remaja (Juara). Dibuat dengan ❤️.</p>
+    </footer>
+
+    <div id="custom-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <p id="modal-message"></p>
+            <button onclick="closeModal()" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">OK</button>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Konfigurasi Firebase Anda akan diisi di sini oleh environment Canvas
+        // Ganti dengan konfigurasi Firebase proyek Anda jika menjalankan secara lokal
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "YOUR_API_KEY", // GANTI DENGAN API KEY ANDA
+            authDomain: "YOUR_AUTH_DOMAIN", // GANTI DENGAN AUTH DOMAIN ANDA
+            projectId: "YOUR_PROJECT_ID", // GANTI DENGAN PROJECT ID ANDA
+            storageBucket: "YOUR_STORAGE_BUCKET", // GANTI DENGAN STORAGE BUCKET ANDA
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // GANTI DENGAN MESSAGING SENDER ID ANDA
+            appId: "YOUR_APP_ID" // GANTI DENGAN APP ID ANDA
+        };
+
+        // App ID untuk path Firestore
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'jurnal-harian-remaja';
+
+        // Impor fungsi yang diperlukan dari SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged,
+            signInWithCustomToken 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            where, 
+            getDocs, 
+            onSnapshot,
+            doc, 
+            setDoc,
+            orderBy, 
+            deleteDoc,
+            Timestamp,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userId = null; // Akan diisi setelah otentikasi
+        let journalsUnsubscribe = null;
+        let moodsUnsubscribe = null;
+
+        // --- Fungsi Modal Kustom ---
+        const modal = document.getElementById('custom-modal');
+        const modalMessage = document.getElementById('modal-message');
+        
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.style.display = "block";
+        }
+
+        window.closeModal = function() { // Make it global for inline onclick
+            modal.style.display = "none";
+        }
+        // Close modal if user clicks outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // --- Otentikasi Firebase ---
+        const loginButton = document.getElementById('login-button');
+        const authStatusEl = document.getElementById('auth-status');
+        const userInfoEl = document.getElementById('user-info');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                authStatusEl.textContent = `Berhasil masuk sebagai pengguna anonim. ID Pengguna: ${userId}`;
+                userInfoEl.textContent = `ID Pengguna: ${userId.substring(0,8)}...`; // Tampilkan sebagian ID
+                loginButton.textContent = 'Lanjutkan ke Dashboard';
+                loginButton.onclick = () => navigateToPage('page-dashboard');
+                
+                // Muat data setelah otentikasi berhasil
+                loadJournals();
+                loadMoods();
+                updateJournalStreak();
+                navigateToPage('page-dashboard'); // Langsung ke dashboard jika sudah login
+            } else {
+                userId = null;
+                authStatusEl.textContent = 'Anda belum masuk. Klik tombol di atas untuk memulai.';
+                userInfoEl.textContent = 'Belum Masuk';
+                loginButton.textContent = 'Mulai Sekarang (Masuk Anonim)';
+                loginButton.onclick = handleLogin; 
+                if (journalsUnsubscribe) journalsUnsubscribe();
+                if (moodsUnsubscribe) moodsUnsubscribe();
+            }
+        });
+
+        async function handleLogin() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                // onAuthStateChanged akan menangani sisanya
+            } catch (error) {
+                console.error("Error signing in: ", error);
+                showModal(`Gagal masuk: ${error.message}`);
+                authStatusEl.textContent = `Gagal masuk: ${error.message}`;
+            }
+        }
+        
+        if (loginButton) { // Pastikan elemen ada sebelum menambahkan event listener
+          loginButton.addEventListener('click', handleLogin);
+        }
+
+
+        // --- Navigasi Halaman ---
+        const pages = document.querySelectorAll('.page');
+        const navButtons = document.querySelectorAll('.nav-button');
+        const navShortcutButtons = document.querySelectorAll('.nav-shortcut-button');
+
+        function navigateToPage(pageId) {
+            pages.forEach(page => {
+                page.classList.toggle('active', page.id === pageId);
+            });
+            navButtons.forEach(button => {
+                button.classList.toggle('active-nav', button.dataset.page === pageId);
+            });
+            // Reset form atau feedback jika perlu saat pindah halaman
+            if (pageId === 'page-write-journal') resetJournalForm();
+            if (pageId === 'page-dashboard') resetMoodCheckin();
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => navigateToPage(button.dataset.page));
+        });
+        navShortcutButtons.forEach(button => {
+            button.addEventListener('click', () => navigateToPage(button.dataset.page));
+        });
+
+
+        // --- Logika Halaman Tulis Jurnal ---
+        const journalDateEl = document.getElementById('journal-date');
+        const journalTextEl = document.getElementById('journal-text');
+        const saveJournalButton = document.getElementById('save-journal-button');
+        const saveJournalFeedbackEl = document.getElementById('save-journal-feedback');
+        const journalMoodOptionsContainer = document.getElementById('journal-mood-options');
+        const selectedJournalMoodEl = document.getElementById('selected-journal-mood');
+
+        // Set tanggal default ke hari ini
+        if(journalDateEl) journalDateEl.valueAsDate = new Date();
+
+        journalMoodOptionsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mood-emoji')) {
+                // Hapus kelas 'selected' dari semua emoji mood
+                journalMoodOptionsContainer.querySelectorAll('.mood-emoji').forEach(emoji => {
+                    emoji.classList.remove('selected', 'border-blue-500');
+                    emoji.classList.add('border-transparent');
+                });
+                // Tambah kelas 'selected' ke emoji yang diklik
+                e.target.classList.add('selected', 'border-blue-500');
+                e.target.classList.remove('border-transparent');
+                selectedJournalMoodEl.value = e.target.dataset.mood;
+            }
+        });
+        
+        function resetJournalForm() {
+            if(journalDateEl) journalDateEl.valueAsDate = new Date();
+            if(journalTextEl) journalTextEl.value = '';
+            if(selectedJournalMoodEl) selectedJournalMoodEl.value = '';
+            if(saveJournalFeedbackEl) saveJournalFeedbackEl.textContent = '';
+            if(journalMoodOptionsContainer) {
+                journalMoodOptionsContainer.querySelectorAll('.mood-emoji').forEach(emoji => {
+                    emoji.classList.remove('selected', 'border-blue-500');
+                    emoji.classList.add('border-transparent');
+                });
+            }
+        }
+
+        saveJournalButton.addEventListener('click', async () => {
+            if (!userId) {
+                showModal("Anda harus masuk terlebih dahulu untuk menyimpan jurnal.");
+                return;
+            }
+            const date = journalDateEl.value;
+            const text = journalTextEl.value.trim();
+            const mood = selectedJournalMoodEl.value;
+
+            if (!date || !text || !mood) {
+                saveJournalFeedbackEl.textContent = "Harap isi semua kolom (tanggal, mood, dan isi jurnal).";
+                saveJournalFeedbackEl.className = 'text-center mt-3 text-red-600';
+                return;
+            }
+
+            try {
+                const journalEntry = {
+                    userId: userId,
+                    date: date, // Simpan sebagai string YYYY-MM-DD
+                    mood: mood,
+                    text: text,
+                    createdAt: serverTimestamp() // Timestamp server untuk pengurutan
+                };
+                // Path: /artifacts/{appId}/users/{userId}/journals/{journalId}
+                const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
+                await addDoc(collection(db, collectionPath), journalEntry);
+                
+                saveJournalFeedbackEl.textContent = "Jurnal berhasil disimpan!";
+                saveJournalFeedbackEl.className = 'text-center mt-3 text-green-600';
+                setTimeout(() => {
+                     saveJournalFeedbackEl.textContent = '';
+                     navigateToPage('page-my-journals'); // Pindah ke halaman jurnal saya
+                }, 1500);
+                resetJournalForm();
+                updateJournalStreak(); // Update streak setelah menyimpan
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                saveJournalFeedbackEl.textContent = `Gagal menyimpan jurnal: ${error.message}`;
+                saveJournalFeedbackEl.className = 'text-center mt-3 text-red-600';
+            }
+        });
+
+        // --- Logika Halaman Jurnal Saya ---
+        const journalListEl = document.getElementById('journal-list');
+
+        async function loadJournals() {
+            if (!userId) return;
+
+            const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
+            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc")); // Urutkan berdasarkan createdAt descending
+
+            if (journalsUnsubscribe) journalsUnsubscribe(); // Hentikan listener sebelumnya jika ada
+
+            journalsUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                if (querySnapshot.empty) {
+                    journalListEl.innerHTML = '<p class="text-slate-500">Belum ada jurnal yang ditulis. Mulai tulis jurnalmu sekarang!</p>';
+                    return;
+                }
+                journalListEl.innerHTML = ''; // Kosongkan daftar sebelum mengisi
+                querySnapshot.forEach((docSnapshot) => {
+                    const journal = docSnapshot.data();
+                    const journalId = docSnapshot.id;
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = 'p-4 bg-sky-50 rounded-lg shadow hover:shadow-md transition-shadow';
+                    
+                    // Format tanggal dari YYYY-MM-DD ke format yang lebih mudah dibaca
+                    let displayDate = journal.date;
+                    try {
+                        const dateObj = new Date(journal.date + 'T00:00:00'); // Tambahkan T00:00:00 untuk menghindari masalah zona waktu
+                        if (!isNaN(dateObj)) {
+                           displayDate = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        }
+                    } catch (e) { console.warn("Error formatting date:", e); }
+
+
+                    entryDiv.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="text-lg font-semibold text-sky-700">${displayDate}</h3>
+                                <p class="text-sm text-sky-600">Mood: <span class="font-medium">${journal.mood} ${getEmojiForMood(journal.mood)}</span></p>
+                            </div>
+                            <button data-id="${journalId}" class="delete-journal-button text-red-500 hover:text-red-700 text-sm">
+                                <i class="fas fa-trash-alt mr-1"></i> Hapus
+                            </button>
+                        </div>
+                        <p class="text-slate-700 whitespace-pre-wrap">${journal.text}</p>
+                    `;
+                    journalListEl.appendChild(entryDiv);
+                });
+                attachDeleteListeners();
+                updateJournalStreak(querySnapshot.docs); // Update streak dengan data terbaru
+            }, (error) => {
+                console.error("Error listening to journal documents: ", error);
+                journalListEl.innerHTML = '<p class="text-red-500">Gagal memuat jurnal. Coba lagi nanti.</p>';
+            });
+        }
+        
+        function attachDeleteListeners() {
+            document.querySelectorAll('.delete-journal-button').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const journalId = e.currentTarget.dataset.id;
+                    // Implement custom confirm dialog
+                    showModalConfirm(`Apakah Anda yakin ingin menghapus jurnal ini? Tindakan ini tidak dapat dibatalkan.`, async () => {
+                        try {
+                            const docPath = `artifacts/${appId}/users/${userId}/journals/${journalId}`;
+                            await deleteDoc(doc(db, docPath));
+                            // loadJournals(); // onSnapshot akan otomatis update UI
+                            showModal("Jurnal berhasil dihapus.");
+                        } catch (error) {
+                            console.error("Error deleting journal: ", error);
+                            showModal(`Gagal menghapus jurnal: ${error.message}`);
+                        }
+                    });
+                });
+            });
+        }
+
+        // --- Logika Mood Check-in Dashboard & Pelacak Mood ---
+        const moodCheckinEmojisContainer = document.getElementById('mood-checkin-emojis');
+        const moodCheckinFeedbackEl = document.getElementById('mood-checkin-feedback');
+        const moodLogListEl = document.getElementById('mood-log-list');
+
+        moodCheckinEmojisContainer.addEventListener('click', async (e) => {
+            if (e.target.tagName === 'SPAN' && e.target.dataset.mood) {
+                if (!userId) {
+                    showModal("Anda harus masuk terlebih dahulu untuk mencatat mood.");
+                    return;
+                }
+                const mood = e.target.dataset.mood;
+                
+                // Hapus seleksi sebelumnya
+                moodCheckinEmojisContainer.querySelectorAll('.mood-emoji').forEach(emoji => emoji.classList.remove('selected'));
+                // Tambah seleksi ke yang diklik
+                e.target.classList.add('selected');
+
+                try {
+                    const moodEntry = {
+                        userId: userId,
+                        mood: mood,
+                        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                        createdAt: serverTimestamp()
+                    };
+                    // Path: /artifacts/${appId}/users/${userId}/moods/{moodId}
+                    const collectionPath = `artifacts/${appId}/users/${userId}/moods`;
+                    await addDoc(collection(db, collectionPath), moodEntry);
+
+                    moodCheckinFeedbackEl.textContent = `Mood "${mood}" ${getEmojiForMood(mood)} berhasil dicatat!`;
+                    moodCheckinFeedbackEl.className = 'text-center mt-3 text-sky-600';
+                    setTimeout(() => moodCheckinFeedbackEl.textContent = '', 2000);
+                } catch (error) {
+                    console.error("Error saving mood: ", error);
+                    moodCheckinFeedbackEl.textContent = `Gagal menyimpan mood: ${error.message}`;
+                    moodCheckinFeedbackEl.className = 'text-center mt-3 text-red-600';
+                }
+            }
+        });
+
+        function resetMoodCheckin() {
+            if(moodCheckinFeedbackEl) moodCheckinFeedbackEl.textContent = '';
+            if(moodCheckinEmojisContainer) {
+                 moodCheckinEmojisContainer.querySelectorAll('.mood-emoji').forEach(emoji => emoji.classList.remove('selected'));
+            }
+        }
+
+        async function loadMoods() {
+            if (!userId) return;
+
+            const collectionPath = `artifacts/${appId}/users/${userId}/moods`;
+            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
+
+            if (moodsUnsubscribe) moodsUnsubscribe();
+
+            moodsUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                if (querySnapshot.empty) {
+                    moodLogListEl.innerHTML = '<p class="text-slate-500">Belum ada mood yang tercatat. Lakukan check-in mood di Dashboard!</p>';
+                    return;
+                }
+                moodLogListEl.innerHTML = '';
+                querySnapshot.forEach((docSnapshot) => {
+                    const moodEntry = docSnapshot.data();
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = 'p-3 bg-indigo-50 rounded-md shadow-sm flex justify-between items-center';
+                    
+                    let displayDate = moodEntry.date;
+                    try {
+                        const dateObj = new Date(moodEntry.date + 'T00:00:00');
+                         if (!isNaN(dateObj)) {
+                           displayDate = dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+                        }
+                    } catch(e) { console.warn("Error formatting mood date:", e); }
+
+                    entryDiv.innerHTML = `
+                        <span class="text-indigo-700">${displayDate}: <span class="font-semibold">${moodEntry.mood}</span></span>
+                        <span class="text-2xl">${getEmojiForMood(moodEntry.mood)}</span>
+                    `;
+                    moodLogListEl.appendChild(entryDiv);
+                });
+            }, (error) => {
+                console.error("Error listening to mood documents: ", error);
+                moodLogListEl.innerHTML = '<p class="text-red-500">Gagal memuat log mood. Coba lagi nanti.</p>';
+            });
+        }
+        
+        function getEmojiForMood(mood) {
+            const emojiMap = {
+                senang: '😄', biasa: '😐', sedih: '😢', marah: '😠', cemas: '😟',
+                semangat: '🤩', syukur: '🙏', kreatif: '�',
+            };
+            return emojiMap[mood] || '❓';
+        }
+
+        // --- Logika Streak Jurnal ---
+        const journalStreakEl = document.getElementById('journal-streak');
+        async function updateJournalStreak(docs = null) {
+            if (!userId) {
+                journalStreakEl.textContent = '0';
+                return;
+            }
+
+            let journalDocs = docs;
+            if (!journalDocs) { // Jika docs tidak disediakan, fetch dari Firestore
+                const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
+                const q = query(collection(db, collectionPath), orderBy("date", "desc")); // Perlu diurutkan berdasarkan tanggal jurnal
+                const querySnapshot = await getDocs(q);
+                journalDocs = querySnapshot.docs;
+            }
+
+            if (journalDocs.length === 0) {
+                journalStreakEl.textContent = '0';
+                return;
+            }
+
+            // Ekstrak tanggal unik dari jurnal, urutkan descending
+            const uniqueDates = [...new Set(journalDocs.map(doc => doc.data().date))].sort().reverse();
+            
+            if (uniqueDates.length === 0) {
+                journalStreakEl.textContent = '0';
+                return;
+            }
+
+            let streak = 0;
+            const today = new Date();
+            today.setHours(0,0,0,0); // Normalisasi ke awal hari
+
+            // Cek apakah ada jurnal hari ini atau kemarin untuk memulai streak
+            let currentDate = new Date(today);
+
+            for (let i = 0; i < uniqueDates.length; i++) {
+                const journalDate = new Date(uniqueDates[i] + 'T00:00:00'); // Normalisasi tanggal jurnal
+                 if (isNaN(journalDate)) continue; // Skip jika tanggal tidak valid
+
+                if (journalDate.getTime() === currentDate.getTime()) {
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1); // Pindah ke hari sebelumnya
+                } else if (journalDate.getTime() < currentDate.getTime()) {
+                    // Jika ada jeda hari, streak berhenti kecuali jika tanggal jurnal pertama adalah hari ini
+                    if (i === 0 && journalDate.getTime() === today.getTime()) {
+                         // Ini adalah kasus khusus jika hanya ada satu entri hari ini
+                         // dan loop dimulai dengan currentDate = today
+                    } else {
+                         break; 
+                    }
+                }
+            }
+            journalStreakEl.textContent = streak.toString();
+        }
+
+
+        // --- Logika Zona Tenang ---
+        const breathingAnimationEl = document.getElementById('breathing-animation');
+        const affirmations = [
+            "Aku berharga dan cukup.", "Aku mampu menghadapi tantangan.",
+            "Aku memilih kedamaian hari ini.", "Aku bersyukur atas apa yang kumiliki.",
+            "Setiap napas memberiku kekuatan.", "Aku tenang dan fokus."
+        ];
+        const affirmationsListEl = document.getElementById('affirmations-list');
+
+        function cycleBreathingAnimation() {
+            if (!breathingAnimationEl || !breathingAnimationEl.classList.contains('active')) return; // Hanya jika halaman aktif
+            
+            breathingAnimationEl.textContent = 'Tarik Napas';
+            breathingAnimationEl.style.transform = 'scale(1.2)';
+            breathingAnimationEl.style.backgroundColor = '#7dd3fc'; // sky-300
+
+            setTimeout(() => {
+                if (!breathingAnimationEl || !breathingAnimationEl.offsetParent) return; // Cek jika elemen masih visible
+                breathingAnimationEl.textContent = 'Tahan';
+                breathingAnimationEl.style.backgroundColor = '#38bdf8'; // sky-400
+            }, 4000); // Durasi tarik napas
+
+            setTimeout(() => {
+                if (!breathingAnimationEl || !breathingAnimationEl.offsetParent) return;
+                breathingAnimationEl.textContent = 'Hembuskan';
+                breathingAnimationEl.style.transform = 'scale(1)';
+                breathingAnimationEl.style.backgroundColor = '#0ea5e9'; // sky-500
+            }, 8000); // Durasi tahan napas
+
+            setTimeout(() => {
+                if (!breathingAnimationEl || !breathingAnimationEl.offsetParent) return;
+                cycleBreathingAnimation(); // Ulangi
+            }, 14000); // Durasi hembuskan napas
+        }
+        
+        // Observer untuk memulai/menghentikan animasi pernapasan saat halaman terlihat/tidak
+        const relaxZoneObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && entry.target.id === 'page-relax-zone') {
+                    if(breathingAnimationEl) breathingAnimationEl.classList.add('active');
+                    cycleBreathingAnimation();
+                    loadRandomAffirmations();
+                } else {
+                    if(breathingAnimationEl) breathingAnimationEl.classList.remove('active');
+                    // Hentikan timeout jika ada (lebih kompleks, untuk saat ini biarkan loop selesai)
+                }
+            });
+        });
+        const pageRelaxZone = document.getElementById('page-relax-zone');
+        if(pageRelaxZone) relaxZoneObserver.observe(pageRelaxZone);
+
+        function loadRandomAffirmations() {
+            affirmationsListEl.innerHTML = '';
+            const shuffled = affirmations.sort(() => 0.5 - Math.random());
+            let selected = shuffled.slice(0, 4); // Ambil 4 afirmasi acak
+            selected.forEach(text => {
+                const li = document.createElement('li');
+                li.textContent = text;
+                affirmationsListEl.appendChild(li);
+            });
+        }
+
+
+        // --- Logika Halaman Pengaturan (Ekspor) ---
+        const exportEmailButton = document.getElementById('export-email-button');
+        const exportWhatsappButton = document.getElementById('export-whatsapp-button');
+
+        exportEmailButton.addEventListener('click', async () => {
+            if (!userId) {
+                showModal("Anda harus masuk untuk mengekspor jurnal.");
+                return;
+            }
+            try {
+                const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
+                const q = query(collection(db, collectionPath), orderBy("date", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    showModal("Anda belum memiliki jurnal untuk diekspor.");
+                    return;
+                }
+
+                let emailBody = "Jurnal Harian Remaja (Juara):\n\n";
+                querySnapshot.forEach(docSnapshot => {
+                    const journal = docSnapshot.data();
+                    emailBody += `Tanggal: ${journal.date}\nMood: ${journal.mood}\n\n${journal.text}\n\n---\n\n`;
+                });
+
+                const mailtoLink = `mailto:?subject=${encodeURIComponent("Ekspor Jurnal Juara")}&body=${encodeURIComponent(emailBody)}`;
+                window.open(mailtoLink, '_blank');
+            } catch (error) {
+                console.error("Error exporting to email: ", error);
+                showModal(`Gagal mengekspor ke email: ${error.message}`);
+            }
+        });
+
+        exportWhatsappButton.addEventListener('click', async () => {
+             if (!userId) {
+                showModal("Anda harus masuk untuk membagikan jurnal.");
+                return;
+            }
+            try {
+                const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
+                // Ambil jurnal terakhir berdasarkan createdAt
+                const q = query(collection(db, collectionPath), orderBy("createdAt", "desc")); 
+                const querySnapshot = await getDocs(q); // Tidak perlu limit(1) jika onSnapshot sudah mengurutkan
+                
+                if (querySnapshot.empty || querySnapshot.docs.length === 0) {
+                    showModal("Anda belum memiliki jurnal untuk dibagikan.");
+                    return;
+                }
+
+                const lastJournal = querySnapshot.docs[0].data(); // Ambil dokumen pertama (terbaru)
+                let whatsappMessage = `Jurnalku hari ini (${lastJournal.date}):\nMood: ${lastJournal.mood} ${getEmojiForMood(lastJournal.mood)}\n\n${lastJournal.text}`;
+                
+                const whatsappLink = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
+                window.open(whatsappLink, '_blank');
+
+            } catch (error) {
+                console.error("Error sharing to WhatsApp: ", error);
+                showModal(`Gagal membagikan ke WhatsApp: ${error.message}`);
+            }
+        });
+        
+        // --- Modal Konfirmasi Kustom ---
+        function showModalConfirm(message, onConfirm) {
+            const existingModal = document.getElementById('custom-confirm-modal');
+            if (existingModal) existingModal.remove();
+
+            const confirmModal = document.createElement('div');
+            confirmModal.id = 'custom-confirm-modal';
+            confirmModal.className = 'modal'; // Gunakan style modal yang sudah ada
+            confirmModal.style.display = 'block';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content'; // Gunakan style modal content
+
+            modalContent.innerHTML = `
+                <p class="mb-4">${message}</p>
+                <div class="flex justify-end space-x-2">
+                    <button id="confirm-cancel-btn" class="bg-slate-300 hover:bg-slate-400 text-slate-800 font-bold py-2 px-4 rounded">Batal</button>
+                    <button id="confirm-ok-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">Ya, Hapus</button>
+                </div>
+            `;
+
+            confirmModal.appendChild(modalContent);
+            document.body.appendChild(confirmModal);
+
+            document.getElementById('confirm-ok-btn').onclick = () => {
+                onConfirm();
+                confirmModal.remove();
+            };
+            document.getElementById('confirm-cancel-btn').onclick = () => {
+                confirmModal.remove();
+            };
+             // Close modal if user clicks outside of it
+            confirmModal.onclick = function(event) {
+                if (event.target == confirmModal) {
+                    confirmModal.remove();
+                }
+            }
+        }
+
+
+        // --- Inisialisasi Aplikasi ---
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Tampilkan halaman selamat datang secara default jika belum login
+        // Jika sudah login, onAuthStateChanged akan mengarahkan ke dashboard
+        if (!auth.currentUser) {
+            navigateToPage('page-welcome');
+        }
+
+        // Kutipan Harian (contoh sederhana, bisa dibuat lebih dinamis)
+        const quotes = [
+            "Setiap hari adalah kesempatan baru untuk menjadi versi terbaik dari dirimu.",
+            "Kebahagiaan bukanlah sesuatu yang sudah jadi. Itu berasal dari tindakanmu sendiri.",
+            "Percayalah pada dirimu sendiri, bahkan ketika tidak ada orang lain yang melakukannya.",
+            "Jangan takut untuk gagal. Takutlah untuk tidak mencoba.",
+            "Hal-hal kecil membuat perbedaan besar."
+        ];
+        document.getElementById('daily-quote').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+
+    </script>
+</body>
+</html>
+�
