@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jurnal Harian Remaja (Juara)</title>
+    <title>Jurnal Harian Remaja (Juara) - LocalStorage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -108,7 +108,12 @@
     <header class="bg-blue-500 text-white p-4 shadow-md sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">Jurnal Harian Remaja (Juara) ✨</h1>
-            <div id="user-info" class="text-sm"></div>
+            <div class="flex items-center">
+                <div id="user-info" class="text-sm mr-4"></div>
+                <button id="logout-button" class="hidden bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm font-semibold py-1 px-3 rounded-md shadow transition duration-300">
+                    Keluar
+                </button>
+            </div>
         </div>
     </header>
 
@@ -130,10 +135,13 @@
                 <div class="welcome-emoji mb-4">🌟</div>
                 <h2 class="text-3xl sm:text-4xl font-bold text-blue-600 mb-2">Selamat Datang di Juara!</h2>
                 <p class="text-lg text-slate-700 mb-6">"Ruang Amanmu, Ekspresikan Dirimu!"</p>
-                <p class="text-slate-600 mb-4">Aplikasi ini membantumu mencatat perasaan, melacak suasana hati, dan menemukan ketenangan. Mari mulai perjalananmu!</p>
-                <button id="login-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow transition duration-300">
-                    Mulai Sekarang
-                </button>
+                <div class="max-w-sm mx-auto">
+                    <label for="name-input" class="block text-sm font-medium text-slate-700 mb-1">Masukkan Namamu:</label>
+                    <input type="text" id="name-input" class="w-full p-3 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mb-4" placeholder="Contoh: Budi">
+                    <button id="name-login-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow transition duration-300">
+                        Masuk dengan Nama
+                    </button>
+                </div>
                 <div id="auth-status" class="mt-4 text-sm text-slate-500"></div>
             </div>
         </section>
@@ -281,6 +289,14 @@
                     </button>
                 </div>
 
+                 <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-2">Hapus Data Lokal</h3>
+                    <p class="text-sm text-slate-500 mb-2">Tindakan ini akan menghapus semua jurnal dan log mood untuk pengguna <strong id="delete-user-name"></strong> dari browser ini. Data tidak dapat dipulihkan.</p>
+                    <button id="delete-local-data-button" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md shadow">
+                        <i class="fas fa-trash-alt mr-2"></i> Hapus Semua Data Saya
+                    </button>
+                </div>
+
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold text-slate-700 mb-2">Tema Aplikasi (Segera Hadir)</h3>
                     <p class="text-slate-500">Pilih tampilan favoritmu!</p>
@@ -308,57 +324,10 @@
 
 
     <script type="module">
-        // Konfigurasi Firebase Anda akan diisi di sini oleh environment Canvas
-        // atau ganti dengan konfigurasi Firebase proyek Anda jika menjalankan secara lokal
-        const firebaseConfigFromUser = {
-            apiKey: "AIzaSyArD46NSBEXMSelB6j7hm9vTWyMTkdkO5E",
-            authDomain: "juararc-503f9.firebaseapp.com",
-            projectId: "juararc-503f9",
-            storageBucket: "juararc-503f9.firebasestorage.app", // Koreksi: nama properti yang benar adalah storageBucket
-            messagingSenderId: "306187241171",
-            appId: "1:306187241171:web:3e2f9cb1e8b22103533626",
-            measurementId: "G-80CC3SWXBB"
-        };
+        // Tidak ada lagi impor atau konfigurasi Firebase
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfigFromUser;
-
-        // App ID untuk path Firestore
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'jurnal-harian-remaja';
-
-        // Impor fungsi yang diperlukan dari SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            onAuthStateChanged,
-            signInWithCustomToken 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            query, 
-            // where, // 'where' tidak digunakan secara aktif saat ini, bisa di-comment jika tidak ada rencana penggunaan
-            getDocs, 
-            onSnapshot,
-            doc, 
-            // setDoc, // 'setDoc' tidak digunakan secara aktif saat ini, bisa di-comment jika tidak ada rencana penggunaan
-            orderBy, 
-            deleteDoc,
-            // Timestamp, // 'Timestamp' tidak digunakan secara aktif saat ini, bisa di-comment jika tidak ada rencana penggunaan
-            serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Uncomment jika ingin menggunakan Analytics
-
-        // Inisialisasi Firebase
-        const firebaseApp = initializeApp(firebaseConfig); // Menggunakan nama variabel yang berbeda untuk menghindari konflik
-        const auth = getAuth(firebaseApp);
-        const db = getFirestore(firebaseApp);
-        // const analytics = getAnalytics(firebaseApp); // Uncomment jika ingin menggunakan Analytics
-
-        let userId = null; // Akan diisi setelah otentikasi
-        let journalsUnsubscribe = null;
-        let moodsUnsubscribe = null;
+        let currentUserName = null; 
+        // Tidak ada lagi journalsUnsubscribe atau moodsUnsubscribe
 
         // --- Fungsi Modal Kustom ---
         const modal = document.getElementById('custom-modal');
@@ -369,67 +338,93 @@
             modal.style.display = "block";
         }
 
-        window.closeModal = function() { // Make it global for inline onclick
+        window.closeModal = function() {
             modal.style.display = "none";
         }
-        // Close modal if user clicks outside of it
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = "none";
             }
         }
 
-        // --- Otentikasi Firebase ---
-        const loginButton = document.getElementById('login-button');
+        // --- Fungsi LocalStorage ---
+        function getLocalStorageKey(dataType) { // dataType bisa 'journals' atau 'moods'
+            if (!currentUserName) return null;
+            // Membuat kunci yang unik untuk setiap pengguna dan tipe data
+            return `jurnalJuara_${currentUserName.replace(/\s+/g, '_').toLowerCase()}_${dataType}`;
+        }
+
+        function saveData(dataType, dataArray) {
+            const key = getLocalStorageKey(dataType);
+            if (!key) return;
+            localStorage.setItem(key, JSON.stringify(dataArray));
+        }
+
+        function loadData(dataType) {
+            const key = getLocalStorageKey(dataType);
+            if (!key) return [];
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+
+        // --- Logika Login dengan Nama ---
+        const nameLoginButton = document.getElementById('name-login-button');
+        const nameInputEl = document.getElementById('name-input');
         const authStatusEl = document.getElementById('auth-status');
         const userInfoEl = document.getElementById('user-info');
+        const logoutButton = document.getElementById('logout-button');
+        const deleteUserNameEl = document.getElementById('delete-user-name');
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                authStatusEl.textContent = `Berhasil masuk. ID Pengguna: ${userId.substring(0,10)}...`; // Menampilkan sebagian ID untuk privasi
-                userInfoEl.textContent = `ID: ${userId.substring(0,8)}...`; 
-                loginButton.textContent = 'Lanjutkan ke Dashboard';
-                loginButton.onclick = () => navigateToPage('page-dashboard');
-                
-                // Muat data setelah otentikasi berhasil
-                loadJournals();
-                loadMoods();
-                updateJournalStreak();
-                navigateToPage('page-dashboard'); // Langsung ke dashboard jika sudah login
-            } else {
-                userId = null;
-                authStatusEl.textContent = 'Anda belum masuk. Klik tombol di atas untuk memulai.';
-                userInfoEl.textContent = 'Belum Masuk';
-                loginButton.textContent = 'Mulai Sekarang (Masuk Anonim)';
-                loginButton.onclick = handleLogin; 
-                if (journalsUnsubscribe) journalsUnsubscribe();
-                if (moodsUnsubscribe) moodsUnsubscribe();
-                // Kosongkan data di UI jika logout
-                if(document.getElementById('journal-list')) document.getElementById('journal-list').innerHTML = '<p class="text-slate-500">Silakan masuk untuk melihat jurnal.</p>';
-                if(document.getElementById('mood-log-list')) document.getElementById('mood-log-list').innerHTML = '<p class="text-slate-500">Silakan masuk untuk melihat log mood.</p>';
-                if(document.getElementById('journal-streak')) document.getElementById('journal-streak').textContent = '0';
 
+        function handleNameLogin() {
+            const name = nameInputEl.value.trim();
+            if (!name) {
+                showModal("Nama tidak boleh kosong!");
+                return;
             }
-        });
+            currentUserName = name; 
 
-        async function handleLogin() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                // onAuthStateChanged akan menangani sisanya
-            } catch (error) {
-                console.error("Error signing in: ", error);
-                showModal(`Gagal masuk: ${error.message}`);
-                authStatusEl.textContent = `Gagal masuk: ${error.message}`;
-            }
+            authStatusEl.textContent = `Masuk sebagai: ${currentUserName}`;
+            userInfoEl.textContent = `Pengguna: ${currentUserName}`;
+            if(deleteUserNameEl) deleteUserNameEl.textContent = currentUserName;
+            nameInputEl.value = ''; 
+            logoutButton.classList.remove('hidden');
+
+            loadJournals();
+            loadMoods();
+            updateJournalStreak();
+            navigateToPage('page-dashboard');
         }
-        
-        if (loginButton) { 
-          loginButton.addEventListener('click', handleLogin);
+
+        if (nameLoginButton) {
+            nameLoginButton.addEventListener('click', handleNameLogin);
+        }
+        if (nameInputEl) {
+            nameInputEl.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    handleNameLogin();
+                }
+            });
+        }
+
+
+        function handleLogout() {
+            currentUserName = null;
+            authStatusEl.textContent = 'Anda telah keluar.';
+            userInfoEl.textContent = 'Belum Masuk';
+            if(deleteUserNameEl) deleteUserNameEl.textContent = "";
+            logoutButton.classList.add('hidden');
+
+            if(document.getElementById('journal-list')) document.getElementById('journal-list').innerHTML = '<p class="text-slate-500">Silakan masukkan nama untuk melihat jurnal.</p>';
+            if(document.getElementById('mood-log-list')) document.getElementById('mood-log-list').innerHTML = '<p class="text-slate-500">Silakan masukkan nama untuk melihat log mood.</p>';
+            if(document.getElementById('journal-streak')) document.getElementById('journal-streak').textContent = '0';
+            
+            navigateToPage('page-welcome');
+        }
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', handleLogout);
         }
 
 
@@ -439,15 +434,22 @@
         const navShortcutButtons = document.querySelectorAll('.nav-shortcut-button');
 
         function navigateToPage(pageId) {
+            if (!currentUserName && pageId !== 'page-welcome') {
+                showModal("Silakan masukkan nama Anda terlebih dahulu.");
+                navigateToPage('page-welcome'); 
+                return;
+            }
             pages.forEach(page => {
                 page.classList.toggle('active', page.id === pageId);
             });
             navButtons.forEach(button => {
                 button.classList.toggle('active-nav', button.dataset.page === pageId);
             });
-            // Reset form atau feedback jika perlu saat pindah halaman
             if (pageId === 'page-write-journal') resetJournalForm();
             if (pageId === 'page-dashboard') resetMoodCheckin();
+            if (pageId === 'page-settings' && deleteUserNameEl) { // Update nama pengguna di halaman pengaturan
+                 deleteUserNameEl.textContent = currentUserName || "";
+            }
         }
 
         navButtons.forEach(button => {
@@ -468,7 +470,7 @@
 
         if(journalDateEl) journalDateEl.valueAsDate = new Date();
 
-        if(journalMoodOptionsContainer) { // Pastikan elemen ada
+        if(journalMoodOptionsContainer) {
             journalMoodOptionsContainer.addEventListener('click', (e) => {
                 if (e.target.classList.contains('mood-emoji')) {
                     journalMoodOptionsContainer.querySelectorAll('.mood-emoji').forEach(emoji => {
@@ -495,10 +497,11 @@
             }
         }
 
-        if(saveJournalButton) { // Pastikan elemen ada
-            saveJournalButton.addEventListener('click', async () => {
-                if (!userId) {
-                    showModal("Anda harus masuk terlebih dahulu untuk menyimpan jurnal.");
+        if(saveJournalButton) {
+            saveJournalButton.addEventListener('click', () => { // Tidak perlu async lagi
+                if (!currentUserName) { 
+                    showModal("Anda harus masuk dengan nama terlebih dahulu untuk menyimpan jurnal.");
+                    navigateToPage('page-welcome');
                     return;
                 }
                 const date = journalDateEl.value;
@@ -512,27 +515,30 @@
                 }
 
                 try {
-                    const journalEntry = {
-                        userId: userId,
+                    const newJournalEntry = {
+                        id: Date.now().toString(), // ID unik sederhana
+                        userName: currentUserName, 
                         date: date, 
                         mood: mood,
                         text: text,
-                        createdAt: serverTimestamp() 
+                        createdAt: new Date().toISOString() // Timestamp klien
                     };
-                    const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
-                    await addDoc(collection(db, collectionPath), journalEntry);
+                    
+                    const journals = loadData('journals');
+                    journals.push(newJournalEntry);
+                    saveData('journals', journals);
                     
                     saveJournalFeedbackEl.textContent = "Jurnal berhasil disimpan!";
                     saveJournalFeedbackEl.className = 'text-center mt-3 text-green-600';
                     setTimeout(() => {
-                         saveJournalFeedbackEl.textContent = '';
+                         if(saveJournalFeedbackEl) saveJournalFeedbackEl.textContent = '';
                          navigateToPage('page-my-journals'); 
                     }, 1500);
                     resetJournalForm();
-                    updateJournalStreak(); 
+                    loadJournals(); // Muat ulang jurnal untuk memperbarui tampilan dan streak
                 } catch (error) {
-                    console.error("Error adding document: ", error);
-                    saveJournalFeedbackEl.textContent = `Gagal menyimpan jurnal: ${error.message}`;
+                    console.error("Error saving journal to localStorage: ", error);
+                    saveJournalFeedbackEl.textContent = `Gagal menyimpan jurnal: ${error.message}.`;
                     saveJournalFeedbackEl.className = 'text-center mt-3 text-red-600';
                 }
             });
@@ -541,69 +547,68 @@
         // --- Logika Halaman Jurnal Saya ---
         const journalListEl = document.getElementById('journal-list');
 
-        async function loadJournals() {
-            if (!userId || !journalListEl) return;
+        function loadJournals() { // Tidak perlu async lagi
+            if (!currentUserName || !journalListEl) { 
+                 if(journalListEl) journalListEl.innerHTML = '<p class="text-slate-500">Silakan masukkan nama untuk melihat jurnal.</p>';
+                updateJournalStreak([]); // Pastikan streak direset jika tidak ada pengguna
+                return;
+            }
 
-            const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
-            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc")); 
-
-            if (journalsUnsubscribe) journalsUnsubscribe(); 
-
-            journalsUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                if (querySnapshot.empty) {
-                    journalListEl.innerHTML = '<p class="text-slate-500">Belum ada jurnal yang ditulis. Mulai tulis jurnalmu sekarang!</p>';
-                    updateJournalStreak([]); // Kirim array kosong untuk streak
-                    return;
-                }
-                journalListEl.innerHTML = ''; 
-                querySnapshot.forEach((docSnapshot) => {
-                    const journal = docSnapshot.data();
-                    const journalId = docSnapshot.id;
-                    const entryDiv = document.createElement('div');
-                    entryDiv.className = 'p-4 bg-sky-50 rounded-lg shadow hover:shadow-md transition-shadow';
-                    
-                    let displayDate = journal.date;
-                    try {
-                        const dateObj = new Date(journal.date + 'T00:00:00'); 
-                        if (!isNaN(dateObj)) {
-                           displayDate = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        }
-                    } catch (e) { console.warn("Error formatting date:", e); }
+            const journals = loadData('journals');
+            // Urutkan berdasarkan createdAt descending (string ISO date bisa diurutkan)
+            journals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
 
-                    entryDiv.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="text-lg font-semibold text-sky-700">${displayDate}</h3>
-                                <p class="text-sm text-sky-600">Mood: <span class="font-medium">${journal.mood} ${getEmojiForMood(journal.mood)}</span></p>
-                            </div>
-                            <button data-id="${journalId}" class="delete-journal-button text-red-500 hover:text-red-700 text-sm">
-                                <i class="fas fa-trash-alt mr-1"></i> Hapus
-                            </button>
+            if (journals.length === 0) {
+                journalListEl.innerHTML = '<p class="text-slate-500">Belum ada jurnal yang ditulis. Mulai tulis jurnalmu sekarang!</p>';
+                updateJournalStreak([]);
+                return;
+            }
+            journalListEl.innerHTML = ''; 
+            journals.forEach((journal) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'p-4 bg-sky-50 rounded-lg shadow hover:shadow-md transition-shadow';
+                
+                let displayDate = journal.date;
+                try {
+                    const dateObj = new Date(journal.date + 'T00:00:00'); 
+                    if (!isNaN(dateObj)) {
+                       displayDate = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    }
+                } catch (e) { console.warn("Error formatting date:", e); }
+
+                entryDiv.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="text-lg font-semibold text-sky-700">${displayDate}</h3>
+                            <p class="text-sm text-sky-600">Mood: <span class="font-medium">${journal.mood} ${getEmojiForMood(journal.mood)}</span></p>
                         </div>
-                        <p class="text-slate-700 whitespace-pre-wrap">${journal.text}</p>
-                    `;
-                    journalListEl.appendChild(entryDiv);
-                });
-                attachDeleteListeners();
-                updateJournalStreak(querySnapshot.docs); 
-            }, (error) => {
-                console.error("Error listening to journal documents: ", error);
-                journalListEl.innerHTML = '<p class="text-red-500">Gagal memuat jurnal. Coba lagi nanti.</p>';
+                        <button data-id="${journal.id}" class="delete-journal-button text-red-500 hover:text-red-700 text-sm">
+                            <i class="fas fa-trash-alt mr-1"></i> Hapus
+                        </button>
+                    </div>
+                    <p class="text-slate-700 whitespace-pre-wrap">${journal.text}</p>
+                `;
+                journalListEl.appendChild(entryDiv);
             });
+            attachDeleteListeners();
+            updateJournalStreak(journals); 
         }
         
         function attachDeleteListeners() {
             document.querySelectorAll('.delete-journal-button').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const journalId = e.currentTarget.dataset.id;
-                    showModalConfirm(`Apakah Anda yakin ingin menghapus jurnal ini? Tindakan ini tidak dapat dibatalkan.`, async () => {
+                button.addEventListener('click', (e) => { // Tidak perlu async
+                    if (!currentUserName) return; 
+                    const journalIdToDelete = e.currentTarget.dataset.id;
+                    showModalConfirm(`Apakah Anda yakin ingin menghapus jurnal ini? Tindakan ini tidak dapat dibatalkan.`, () => { // Tidak perlu async
                         try {
-                            const docPath = `artifacts/${appId}/users/${userId}/journals/${journalId}`;
-                            await deleteDoc(doc(db, docPath));
+                            let journals = loadData('journals');
+                            journals = journals.filter(journal => journal.id !== journalIdToDelete);
+                            saveData('journals', journals);
+                            loadJournals(); // Muat ulang untuk refresh tampilan
                             showModal("Jurnal berhasil dihapus.");
                         } catch (error) {
-                            console.error("Error deleting journal: ", error);
+                            console.error("Error deleting journal from localStorage: ", error);
                             showModal(`Gagal menghapus jurnal: ${error.message}`);
                         }
                     });
@@ -616,11 +621,12 @@
         const moodCheckinFeedbackEl = document.getElementById('mood-checkin-feedback');
         const moodLogListEl = document.getElementById('mood-log-list');
 
-        if(moodCheckinEmojisContainer) { // Pastikan elemen ada
-            moodCheckinEmojisContainer.addEventListener('click', async (e) => {
+        if(moodCheckinEmojisContainer) {
+            moodCheckinEmojisContainer.addEventListener('click', (e) => { // Tidak perlu async
                 if (e.target.tagName === 'SPAN' && e.target.dataset.mood) {
-                    if (!userId) {
-                        showModal("Anda harus masuk terlebih dahulu untuk mencatat mood.");
+                    if (!currentUserName) { 
+                        showModal("Anda harus masuk dengan nama terlebih dahulu untuk mencatat mood.");
+                        navigateToPage('page-welcome');
                         return;
                     }
                     const mood = e.target.dataset.mood;
@@ -629,20 +635,26 @@
                     e.target.classList.add('selected');
 
                     try {
-                        const moodEntry = {
-                            userId: userId,
+                        const newMoodEntry = {
+                            id: Date.now().toString(), // ID unik sederhana
+                            userName: currentUserName, 
                             mood: mood,
                             date: new Date().toISOString().split('T')[0], 
-                            createdAt: serverTimestamp()
+                            createdAt: new Date().toISOString() // Timestamp klien
                         };
-                        const collectionPath = `artifacts/${appId}/users/${userId}/moods`;
-                        await addDoc(collection(db, collectionPath), moodEntry);
+                        
+                        const moods = loadData('moods');
+                        moods.push(newMoodEntry);
+                        saveData('moods', moods);
 
                         moodCheckinFeedbackEl.textContent = `Mood "${mood}" ${getEmojiForMood(mood)} berhasil dicatat!`;
                         moodCheckinFeedbackEl.className = 'text-center mt-3 text-sky-600';
-                        setTimeout(() => moodCheckinFeedbackEl.textContent = '', 2000);
+                        setTimeout(() => { 
+                            if(moodCheckinFeedbackEl) moodCheckinFeedbackEl.textContent = '';
+                        }, 2000);
+                        loadMoods(); // Muat ulang mood untuk update tampilan
                     } catch (error) {
-                        console.error("Error saving mood: ", error);
+                        console.error("Error saving mood to localStorage: ", error);
                         moodCheckinFeedbackEl.textContent = `Gagal menyimpan mood: ${error.message}`;
                         moodCheckinFeedbackEl.className = 'text-center mt-3 text-red-600';
                     }
@@ -657,42 +669,38 @@
             }
         }
 
-        async function loadMoods() {
-            if (!userId || !moodLogListEl) return;
+        function loadMoods() { // Tidak perlu async
+            if (!currentUserName || !moodLogListEl) { 
+                if(moodLogListEl) moodLogListEl.innerHTML = '<p class="text-slate-500">Silakan masukkan nama untuk melihat log mood.</p>';
+                return;
+            }
 
-            const collectionPath = `artifacts/${appId}/users/${userId}/moods`;
-            const q = query(collection(db, collectionPath), orderBy("createdAt", "desc"));
+            const moods = loadData('moods');
+            moods.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-            if (moodsUnsubscribe) moodsUnsubscribe();
 
-            moodsUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                if (querySnapshot.empty) {
-                    moodLogListEl.innerHTML = '<p class="text-slate-500">Belum ada mood yang tercatat. Lakukan check-in mood di Dashboard!</p>';
-                    return;
-                }
-                moodLogListEl.innerHTML = '';
-                querySnapshot.forEach((docSnapshot) => {
-                    const moodEntry = docSnapshot.data();
-                    const entryDiv = document.createElement('div');
-                    entryDiv.className = 'p-3 bg-indigo-50 rounded-md shadow-sm flex justify-between items-center';
-                    
-                    let displayDate = moodEntry.date;
-                    try {
-                        const dateObj = new Date(moodEntry.date + 'T00:00:00');
-                         if (!isNaN(dateObj)) {
-                           displayDate = dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-                        }
-                    } catch(e) { console.warn("Error formatting mood date:", e); }
+            if (moods.length === 0) {
+                moodLogListEl.innerHTML = '<p class="text-slate-500">Belum ada mood yang tercatat. Lakukan check-in mood di Dashboard!</p>';
+                return;
+            }
+            moodLogListEl.innerHTML = '';
+            moods.forEach((moodEntry) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'p-3 bg-indigo-50 rounded-md shadow-sm flex justify-between items-center';
+                
+                let displayDate = moodEntry.date;
+                try {
+                    const dateObj = new Date(moodEntry.date + 'T00:00:00');
+                     if (!isNaN(dateObj)) {
+                       displayDate = dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+                    }
+                } catch(e) { console.warn("Error formatting mood date:", e); }
 
-                    entryDiv.innerHTML = `
-                        <span class="text-indigo-700">${displayDate}: <span class="font-semibold">${moodEntry.mood}</span></span>
-                        <span class="text-2xl">${getEmojiForMood(moodEntry.mood)}</span>
-                    `;
-                    moodLogListEl.appendChild(entryDiv);
-                });
-            }, (error) => {
-                console.error("Error listening to mood documents: ", error);
-                moodLogListEl.innerHTML = '<p class="text-red-500">Gagal memuat log mood. Coba lagi nanti.</p>';
+                entryDiv.innerHTML = `
+                    <span class="text-indigo-700">${displayDate}: <span class="font-semibold">${moodEntry.mood}</span></span>
+                    <span class="text-2xl">${getEmojiForMood(moodEntry.mood)}</span>
+                `;
+                moodLogListEl.appendChild(entryDiv);
             });
         }
         
@@ -706,32 +714,21 @@
 
         // --- Logika Streak Jurnal ---
         const journalStreakEl = document.getElementById('journal-streak');
-        async function updateJournalStreak(docs = null) {
-            if (!userId || !journalStreakEl) {
+        function updateJournalStreak(journalArray = null) { // Tidak perlu async
+            if (!currentUserName || !journalStreakEl) { 
                 if(journalStreakEl) journalStreakEl.textContent = '0';
                 return;
             }
 
-            let journalDocs = docs;
-            if (!journalDocs) { 
-                const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
-                const q = query(collection(db, collectionPath), orderBy("date", "desc")); 
-                try {
-                    const querySnapshot = await getDocs(q);
-                    journalDocs = querySnapshot.docs;
-                } catch (error) {
-                    console.error("Error fetching journal docs for streak: ", error);
-                    journalStreakEl.textContent = '0';
-                    return;
-                }
-            }
+            const journals = journalArray ? journalArray : loadData('journals');
 
-            if (journalDocs.length === 0) {
+            if (journals.length === 0) {
                 journalStreakEl.textContent = '0';
                 return;
             }
 
-            const uniqueDates = [...new Set(journalDocs.map(doc => doc.data().date))].sort().reverse();
+            // Ekstrak tanggal unik dari jurnal, urutkan descending
+            const uniqueDates = [...new Set(journals.map(j => j.date))].sort().reverse();
             
             if (uniqueDates.length === 0) {
                 journalStreakEl.textContent = '0';
@@ -753,9 +750,7 @@
                     currentDate.setDate(currentDate.getDate() - 1); 
                 } else if (journalDate.getTime() < currentDate.getTime()) {
                     if (i === 0 && journalDate.getTime() === today.getTime()) {
-                        // Case: only one entry today, streak is 1 (already counted if it matched)
-                        // This condition is a bit redundant if the first check (journalDate.getTime() === currentDate.getTime())
-                        // correctly handles the first day.
+                       // Sudah dihitung
                     } else {
                          break; 
                     }
@@ -775,17 +770,16 @@
         const affirmationsListEl = document.getElementById('affirmations-list');
         let breathingInterval;
 
-
         function cycleBreathingAnimation() {
             if (!breathingAnimationEl || !document.getElementById('page-relax-zone').classList.contains('active')) {
-                 if (breathingInterval) clearInterval(breathingInterval); // Hentikan interval jika halaman tidak aktif
+                 if (breathingInterval) clearInterval(breathingInterval);
                 return; 
             }
             
             const phases = [
-                { text: 'Tarik Napas', scale: 1.2, color: '#7dd3fc', duration: 4000 }, // sky-300
-                { text: 'Tahan', scale: 1.2, color: '#38bdf8', duration: 4000 },       // sky-400
-                { text: 'Hembuskan', scale: 1, color: '#0ea5e9', duration: 6000 }     // sky-500
+                { text: 'Tarik Napas', scale: 1.2, color: '#7dd3fc', duration: 4000 },
+                { text: 'Tahan', scale: 1.2, color: '#38bdf8', duration: 4000 },
+                { text: 'Hembuskan', scale: 1, color: '#0ea5e9', duration: 6000 }
             ];
             let currentPhaseIndex = 0;
 
@@ -800,10 +794,10 @@
                 breathingAnimationEl.style.backgroundColor = phase.color;
 
                 currentPhaseIndex = (currentPhaseIndex + 1) % phases.length;
-                if (breathingInterval) clearInterval(breathingInterval); // Hapus interval lama sebelum set yang baru
+                if (breathingInterval) clearInterval(breathingInterval);
                 breathingInterval = setTimeout(animatePhase, phase.duration);
             }
-            animatePhase(); // Mulai siklus pertama
+            animatePhase();
         }
         
         const relaxZoneObserver = new IntersectionObserver((entries) => {
@@ -812,8 +806,8 @@
                     cycleBreathingAnimation();
                     loadRandomAffirmations();
                 } else {
-                    if (breathingInterval) clearInterval(breathingInterval); // Hentikan animasi jika tidak terlihat
-                     if (breathingAnimationEl) { // Reset tampilan jika perlu
+                    if (breathingInterval) clearInterval(breathingInterval);
+                     if (breathingAnimationEl) {
                         breathingAnimationEl.textContent = 'Tarik Napas';
                         breathingAnimationEl.style.transform = 'scale(1)';
                         breathingAnimationEl.style.backgroundColor = '#7dd3fc';
@@ -836,34 +830,34 @@
             });
         }
 
-
-        // --- Logika Halaman Pengaturan (Ekspor) ---
+        // --- Logika Halaman Pengaturan (Ekspor & Hapus Data) ---
         const exportEmailButton = document.getElementById('export-email-button');
         const exportWhatsappButton = document.getElementById('export-whatsapp-button');
+        const deleteLocalDataButton = document.getElementById('delete-local-data-button');
 
-        if(exportEmailButton) { // Pastikan elemen ada
-            exportEmailButton.addEventListener('click', async () => {
-                if (!userId) {
-                    showModal("Anda harus masuk untuk mengekspor jurnal.");
+
+        if(exportEmailButton) {
+            exportEmailButton.addEventListener('click', () => { // Tidak perlu async
+                if (!currentUserName) { 
+                    showModal("Anda harus masuk dengan nama untuk mengekspor jurnal.");
+                    navigateToPage('page-welcome');
                     return;
                 }
                 try {
-                    const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
-                    const q = query(collection(db, collectionPath), orderBy("date", "asc"));
-                    const querySnapshot = await getDocs(q);
+                    const journals = loadData('journals');
                     
-                    if (querySnapshot.empty) {
+                    if (journals.length === 0) {
                         showModal("Anda belum memiliki jurnal untuk diekspor.");
                         return;
                     }
 
-                    let emailBody = "Jurnal Harian Remaja (Juara):\n\n";
-                    querySnapshot.forEach(docSnapshot => {
-                        const journal = docSnapshot.data();
+                    let emailBody = `Jurnal Harian Remaja (Juara) - ${currentUserName}:\n\n`;
+                    journals.sort((a, b) => new Date(a.date) - new Date(b.date)); // Urutkan berdasarkan tanggal
+                    journals.forEach(journal => {
                         emailBody += `Tanggal: ${journal.date}\nMood: ${journal.mood}\n\n${journal.text}\n\n---\n\n`;
                     });
 
-                    const mailtoLink = `mailto:?subject=${encodeURIComponent("Ekspor Jurnal Juara")}&body=${encodeURIComponent(emailBody)}`;
+                    const mailtoLink = `mailto:?subject=${encodeURIComponent("Ekspor Jurnal Juara - " + currentUserName)}&body=${encodeURIComponent(emailBody)}`;
                     window.open(mailtoLink, '_blank');
                 } catch (error) {
                     console.error("Error exporting to email: ", error);
@@ -872,24 +866,24 @@
             });
         }
 
-        if(exportWhatsappButton) { // Pastikan elemen ada
-            exportWhatsappButton.addEventListener('click', async () => {
-                 if (!userId) {
-                    showModal("Anda harus masuk untuk membagikan jurnal.");
+        if(exportWhatsappButton) {
+            exportWhatsappButton.addEventListener('click', () => { // Tidak perlu async
+                 if (!currentUserName) { 
+                    showModal("Anda harus masuk dengan nama untuk membagikan jurnal.");
+                    navigateToPage('page-welcome');
                     return;
                 }
                 try {
-                    const collectionPath = `artifacts/${appId}/users/${userId}/journals`;
-                    const q = query(collection(db, collectionPath), orderBy("createdAt", "desc")); 
-                    const querySnapshot = await getDocs(q); 
+                    const journals = loadData('journals');
+                    journals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Ambil yang terbaru
                     
-                    if (querySnapshot.empty || querySnapshot.docs.length === 0) {
+                    if (journals.length === 0) {
                         showModal("Anda belum memiliki jurnal untuk dibagikan.");
                         return;
                     }
 
-                    const lastJournal = querySnapshot.docs[0].data(); 
-                    let whatsappMessage = `Jurnalku hari ini (${lastJournal.date}):\nMood: ${lastJournal.mood} ${getEmojiForMood(lastJournal.mood)}\n\n${lastJournal.text}`;
+                    const lastJournal = journals[0]; 
+                    let whatsappMessage = `Jurnalku (${currentUserName}) hari ini (${lastJournal.date}):\nMood: ${lastJournal.mood} ${getEmojiForMood(lastJournal.mood)}\n\n${lastJournal.text}`;
                     
                     const whatsappLink = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
                     window.open(whatsappLink, '_blank');
@@ -898,6 +892,29 @@
                     console.error("Error sharing to WhatsApp: ", error);
                     showModal(`Gagal membagikan ke WhatsApp: ${error.message}`);
                 }
+            });
+        }
+
+        if(deleteLocalDataButton) {
+            deleteLocalDataButton.addEventListener('click', () => {
+                if (!currentUserName) {
+                    showModal("Tidak ada pengguna yang aktif untuk menghapus data.");
+                    return;
+                }
+                showModalConfirm(`Apakah Anda yakin ingin menghapus SEMUA jurnal dan log mood untuk pengguna "${currentUserName}" dari browser ini? Tindakan ini tidak dapat dibatalkan.`, () => {
+                    try {
+                        localStorage.removeItem(getLocalStorageKey('journals'));
+                        localStorage.removeItem(getLocalStorageKey('moods'));
+                        showModal(`Semua data untuk pengguna "${currentUserName}" telah dihapus dari browser ini.`);
+                        // Muat ulang data (yang sekarang kosong) dan update UI
+                        loadJournals();
+                        loadMoods();
+                        updateJournalStreak();
+                    } catch (error) {
+                        console.error("Error deleting local data: ", error);
+                        showModal(`Gagal menghapus data: ${error.message}`);
+                    }
+                });
             });
         }
         
@@ -939,14 +956,13 @@
             }
         }
 
-
         // --- Inisialisasi Aplikasi ---
         const currentYearEl = document.getElementById('current-year');
         if(currentYearEl) currentYearEl.textContent = new Date().getFullYear();
         
-        if (!auth.currentUser) {
-            navigateToPage('page-welcome');
-        }
+        navigateToPage('page-welcome');
+        if(authStatusEl) authStatusEl.textContent = 'Silakan masukkan nama Anda untuk memulai.';
+
 
         const quotes = [
             "Setiap hari adalah kesempatan baru untuk menjadi versi terbaik dari dirimu.",
